@@ -35,8 +35,15 @@ system_message += "You are able to call a function to get the social media links
 system_message += "Always be accurate. Respond in markdown. If you don't know the answer, say so."
 
 def chat(message, history):
+    updated_system_message = system_message
+    if 'http' not in message:
+        updated_system_message += " If the user does not provide a website URL, please ask the user to please provide a website url."
+    elif message.count('http') > 1:
+        updated_system_message += " If the user provides more than one website URL, perhaps clarify which one to use and please ask them to only provide one website url for each question."
+
     messages = [{"role": "system", "content": system_message}] + history + [{"role": "user", "content": message}]
     response = openai.chat.completions.create(model=MODEL, messages=messages, tools=tools)
+
     if response.choices[0].finish_reason == "tool_calls":
         message = response.choices[0].message
         tool_call = message.tool_calls[0]
